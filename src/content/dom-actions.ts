@@ -5,5 +5,6 @@ export class DomActions {
   block(node: Element, reason: string): void { const item = node as HTMLElement; item.dataset.winnowOriginalDisplay = item.style.display; item.dataset.winnowReason = reason; item.style.display = 'none'; hidden.add(node); this.count++; this.badge.textContent = `Winnow: ${this.count} filtered`; }
   reset(node: Element): void { if (!hidden.has(node)) return; const item = node as HTMLElement; item.style.display = item.dataset.winnowOriginalDisplay ?? ''; delete item.dataset.winnowOriginalDisplay; delete item.dataset.winnowReason; hidden.delete(node); }
   getCount(): number { return this.count; }
+  destroy(): void { this.badge.remove(); }
   private revealAll(): void { document.querySelectorAll<HTMLElement>('[data-winnow-original-display]').forEach((node) => this.reset(node)); }
 }
