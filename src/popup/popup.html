@@ -1,1 +1,98 @@
-<!doctype html><html><head><meta charset="utf-8"><title>Winnow</title><style>body{width:260px;margin:14px;font:13px system-ui;color:#222}h1{font-size:18px;margin:0 0 10px}label{display:flex;gap:7px;align-items:center;margin:7px 0}select{margin-left:auto}#count{color:#555;margin:12px 0}a{color:#2457a8}</style></head><body><h1>Winnow</h1><label><input id="enabled" type="checkbox"> Filter this site</label><label>Sensitivity <select id="sensitivity"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label><div id="filters"></div><p id="count"></p><a href="options.html" target="_blank">Full settings</a><script src="popup/popup.js"></script></body></html>
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Winnow</title>
+    <style>
+      :root {
+        --ink: #1f2a30;
+        --muted: #5c6b73;
+        --line: #d7e0e4;
+        --accent: #2f6f68;
+        --bg: #f4f7f6;
+      }
+      body {
+        width: 280px;
+        margin: 0;
+        padding: 14px 14px 12px;
+        font: 13px/1.4 "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(120% 80% at 100% 0%, rgba(47, 111, 104, 0.12), transparent 55%),
+          var(--bg);
+      }
+      header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      h1 {
+        font-size: 18px;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+        margin: 0;
+      }
+      header span {
+        color: var(--muted);
+        font-size: 11px;
+      }
+      label {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin: 8px 0;
+      }
+      select {
+        margin-left: auto;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 3px 6px;
+        background: #fff;
+        color: var(--ink);
+      }
+      #filters {
+        margin-top: 4px;
+        padding-top: 8px;
+        border-top: 1px solid var(--line);
+      }
+      #stats {
+        margin: 12px 0 8px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      #stats p {
+        margin: 2px 0;
+      }
+      a {
+        color: var(--accent);
+        font-size: 12px;
+      }
+      input[type='checkbox'] {
+        accent-color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Winnow</h1>
+      <span>on-device</span>
+    </header>
+    <label><input id="enabled" type="checkbox" /> Filter this site</label>
+    <label>
+      Sensitivity
+      <select id="sensitivity">
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+      </select>
+    </label>
+    <div id="filters"></div>
+    <div id="stats">
+      <p id="count"></p>
+      <p id="lifetime"></p>
+    </div>
+    <a href="options.html" target="_blank">Full settings</a>
+    <script src="popup/popup.js"></script>
+  </body>
+</html>

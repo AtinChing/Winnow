@@ -6,6 +6,7 @@ await mkdir('dist', { recursive: true });
 await cp('src/manifest.json', 'dist/manifest.json');
 await cp('src/popup/popup.html', 'dist/popup.html');
 await cp('src/options/options.html', 'dist/options.html');
+await cp('src/icons', 'dist/icons', { recursive: true });
 
 await build({
   entryPoints: {
