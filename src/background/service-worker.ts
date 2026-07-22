@@ -62,14 +62,33 @@ async function notifySettingsChanged(): Promise<void> {
   }
 }
 
+const CONTENT_SETTINGS_KEYS = [
+  'enabledOrigins',
+  'filters',
+  'sensitivity',
+  'advancedThresholds',
+  'customBlocklist',
+  'allowlist'
+] as const;
+
+function contentSettingsChanged(changes: Record<string, chrome.storage.StorageChange>): boolean {
+  return CONTENT_SETTINGS_KEYS.some((key) => key in changes);
+}
+
+async function bootstrapContentScripts(): Promise<void> {
+  await syncContentScripts();
+  const origins = await enabledOrigins();
+  if (origins.length) await injectIntoOrigins(origins);
+}
+
 chrome.runtime.onInstalled.addListener(async () => {
   const existing = await chrome.storage.sync.get();
   if (Object.keys(existing).length === 0) await chrome.storage.sync.set(defaultSettings);
-  await syncContentScripts();
+  await bootstrapContentScripts();
 });
 
 chrome.runtime.onStartup.addListener(() => {
-  void syncContentScripts();
+  void bootstrapContentScripts();
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
@@ -85,7 +104,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
       if (newlyEnabled.length) await injectIntoOrigins(newlyEnabled);
     }
 
-    await notifySettingsChanged();
+    if (contentSettingsChanged(changes)) await notifySettingsChanged();
   })();
 });
 
