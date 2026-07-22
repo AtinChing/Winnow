@@ -9,7 +9,7 @@ Winnow is a private, on-device Chrome extension for making fast live chat easier
 3. Open `chrome://extensions`, turn on Developer mode, and choose **Load unpacked**.
 4. Select the generated `dist` folder.
 
-Winnow starts dormant on every site. Use its toolbar popup to enable filtering for the current site.
+Winnow starts dormant on every site. Use its toolbar popup to enable filtering for the current site. The content script is injected only for origins you enable (including nested chat iframes such as YouTube Live).
 
 ## Development
 
