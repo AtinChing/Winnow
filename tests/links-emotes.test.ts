@@ -26,6 +26,24 @@ describe('links filter', () => {
     const result = linksFilter.check(ctx(text), state(), defaultSettings);
     expect(result.blocked).toBe(true);
   });
+
+  it('detects www links without a scheme', () => {
+    const text = 'www.a.com www.b.com www.c.com';
+    const result = linksFilter.check(ctx(text), state(), defaultSettings);
+    expect(result.blocked).toBe(true);
+  });
+
+  it('does not block a single URL even when it dominates the message', () => {
+    const result = linksFilter.check(ctx('https://verylong.example.com/path/to/resource'), state(), defaultSettings);
+    expect(result.blocked).toBe(false);
+  });
+
+  it('allows two spaced links when surrounding text keeps the ratio low', () => {
+    const filler = 'please carefully review the documentation and community guidelines before sharing anything ';
+    const text = `${filler}https://example.com/a ${filler}https://example.com/b ${filler}`;
+    const result = linksFilter.check(ctx(text), state(), defaultSettings);
+    expect(result.blocked).toBe(false);
+  });
 });
 
 describe('emotes and caps filter', () => {
@@ -35,10 +53,20 @@ describe('emotes and caps filter', () => {
     expect(result.reason).toBe('caps flood');
   });
 
+  it('allows short all-caps below the letter minimum', () => {
+    const result = emotesCapsFilter.check(ctx('OK LOL'), state(), defaultSettings);
+    expect(result.blocked).toBe(false);
+  });
+
   it('blocks long character floods', () => {
     const result = emotesCapsFilter.check(ctx(`go${'o'.repeat(20)}l`), state(), defaultSettings);
     expect(result.blocked).toBe(true);
     expect(result.reason).toBe('character flood');
+  });
+
+  it('allows repeated characters under the threshold', () => {
+    const result = emotesCapsFilter.check(ctx('goooool'), state(), defaultSettings);
+    expect(result.blocked).toBe(false);
   });
 
   it('blocks emote-token floods', () => {

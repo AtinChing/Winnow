@@ -10,8 +10,8 @@ function tokens(text: string): Set<string> {
 
 /** Lightweight near-duplicate check: exact, containment, compact match, or token overlap. */
 export function similar(a: string, b: string): boolean {
-  if (a === b) return true;
   if (!a || !b) return false;
+  if (a === b) return true;
 
   const shorter = a.length <= b.length ? a : b;
   const longer = a.length <= b.length ? b : a;

@@ -8,5 +8,13 @@ describe('normalization', () => {
   it('strips emoji and symbols for compact matching', () => {
     expect(compactNormalized('k.y.s!!!')).toBe('kys');
   });
+  it('returns empty for whitespace and punctuation-only input', () => {
+    expect(normalizeText('   ')).toBe('');
+    expect(normalizeText('!!! ???')).toBe('');
+    expect(compactNormalized('...')).toBe('');
+  });
+  it('strips combining marks after NFKD', () => {
+    expect(normalizeText('café')).toBe('cafe');
+    expect(compactNormalized('naïve')).toBe('naive');
+  });
 });
-
