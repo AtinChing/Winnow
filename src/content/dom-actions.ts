@@ -66,7 +66,7 @@ export class DomActions {
     show.onclick = (event) => {
       event.preventDefault();
       event.stopPropagation();
-      this.reveal(node);
+      if (this.reveal(node)) this.reportDelta(-1);
     };
 
     placeholder.append(label, show);
@@ -77,11 +77,13 @@ export class DomActions {
   }
 
   reset(node: Element): void {
-    // Re-evaluation path: drop placeholder/count so a subsequent block() does not double-count.
+    // Re-evaluation path: drop placeholder/badge count so a subsequent block() does not double-count.
+    // Session/lifetime stats are owned by the content script via isBlocked().
     this.reveal(node, true);
   }
 
-  reveal(node: Element, updateCount = true): void {
+  /** @returns true when a filtered placeholder was removed */
+  reveal(node: Element, updateCount = true): boolean {
     const item = node as HTMLElement;
     const hadPlaceholder = this.placeholders.has(node);
     const placeholder = this.placeholders.get(node);
@@ -98,12 +100,16 @@ export class DomActions {
       this.count = Math.max(0, this.count - 1);
       this.renderBadge();
     }
+
+    return hadPlaceholder;
   }
 
   revealAll(): void {
+    const n = this.placeholders.size;
     for (const node of [...this.placeholders.keys()]) this.reveal(node, false);
     this.count = 0;
     this.renderBadge();
+    if (n) this.reportDelta(-n);
   }
 
   isBlocked(node: Element): boolean {
@@ -115,8 +121,14 @@ export class DomActions {
   }
 
   destroy(): void {
-    this.revealAll();
+    // Disable path: restore messages and remove chrome without rewriting session stats.
+    for (const node of [...this.placeholders.keys()]) this.reveal(node, false);
+    this.count = 0;
     this.badge.remove();
+  }
+
+  private reportDelta(delta: number): void {
+    chrome.runtime.sendMessage({ type: 'filtered', delta }).catch(() => undefined);
   }
 
   private renderBadge(): void {
