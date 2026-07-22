@@ -2,8 +2,21 @@ import { defaultSettings, getSettings } from '../shared/settings';
 
 const CONTENT_SCRIPT_ID = 'winnow-content';
 
+const CONTENT_SETTINGS_KEYS = [
+  'enabledOrigins',
+  'filters',
+  'sensitivity',
+  'advancedThresholds',
+  'customBlocklist',
+  'allowlist'
+] as const;
+
 function matchesForOrigins(origins: string[]): string[] {
   return origins.map((origin) => `${origin}/*`);
+}
+
+function contentSettingsChanged(changes: Record<string, chrome.storage.StorageChange>): boolean {
+  return CONTENT_SETTINGS_KEYS.some((key) => key in changes);
 }
 
 async function enabledOrigins(): Promise<string[]> {
@@ -58,21 +71,10 @@ async function notifySettingsChanged(): Promise<void> {
   const tabs = await chrome.tabs.query({});
   for (const tab of tabs) {
     if (!tab.id) continue;
+    // Omit frameId so every frame with a content-script listener receives the message
+    // (needed for nested live-chat iframes such as YouTube Live).
     chrome.tabs.sendMessage(tab.id, { type: 'settings-changed' }).catch(() => undefined);
   }
-}
-
-const CONTENT_SETTINGS_KEYS = [
-  'enabledOrigins',
-  'filters',
-  'sensitivity',
-  'advancedThresholds',
-  'customBlocklist',
-  'allowlist'
-] as const;
-
-function contentSettingsChanged(changes: Record<string, chrome.storage.StorageChange>): boolean {
-  return CONTENT_SETTINGS_KEYS.some((key) => key in changes);
 }
 
 async function bootstrapContentScripts(): Promise<void> {
@@ -104,6 +106,8 @@ chrome.storage.onChanged.addListener((changes, area) => {
       if (newlyEnabled.length) await injectIntoOrigins(newlyEnabled);
     }
 
+    // Ignore lifetimeFilteredCount and other non-filter keys so counter updates
+    // do not tear down observers mid-stream.
     if (contentSettingsChanged(changes)) await notifySettingsChanged();
   })();
 });

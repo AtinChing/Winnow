@@ -10,12 +10,15 @@ declare global {
   }
 }
 
+// Idempotent under registerContentScripts + executeScript double-injection.
 if (!window.__winnowInitialized) {
   window.__winnowInitialized = true;
 
   let settings: Settings;
   let adapter: ChatAdapter;
   let observer: MutationObserver | undefined;
+  let findTimer: ReturnType<typeof setTimeout> | undefined;
+  let runId = 0;
   let pending = new Set<Element>();
   let actions: DomActions | undefined;
   const pipeline = new Pipeline();
@@ -70,29 +73,44 @@ if (!window.__winnowInitialized) {
     container.querySelectorAll('*').forEach(queue);
   }
 
+  function stopFiltering(): void {
+    runId++;
+    if (findTimer !== undefined) {
+      clearTimeout(findTimer);
+      findTimer = undefined;
+    }
+    observer?.disconnect();
+    observer = undefined;
+    pending.clear();
+  }
+
   async function start(): Promise<void> {
+    stopFiltering();
+    const activeRun = runId;
+
     if (!(await enabled())) {
-      observer?.disconnect();
-      observer = undefined;
+      if (activeRun !== runId) return;
       actions?.destroy();
       actions = undefined;
       return;
     }
 
+    if (activeRun !== runId) return;
+
     actions ??= new DomActions();
     adapter = getAdapter(location.hostname);
-    const find = () => {
+
+    const find = (): void => {
+      if (activeRun !== runId) return;
       const container = adapter.findContainer();
       if (container) attach(container);
-      else window.setTimeout(find, 1000);
+      else findTimer = setTimeout(find, 1000);
     };
     find();
   }
 
   chrome.runtime.onMessage.addListener((message: { type?: string }) => {
     if (message.type === 'settings-changed') {
-      observer?.disconnect();
-      observer = undefined;
       void start();
     }
   });
