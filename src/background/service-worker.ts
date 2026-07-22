@@ -113,17 +113,18 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 
 chrome.runtime.onMessage.addListener((message: { type?: string; delta?: number }) => {
-  if (message.type !== 'filtered' || !message.delta) return;
+  if (message.type !== 'filtered' || typeof message.delta !== 'number' || message.delta === 0) return;
+  const delta = message.delta;
   void (async () => {
     const current = await chrome.storage.sync.get({ lifetimeFilteredCount: 0 });
     await chrome.storage.sync.set({
-      lifetimeFilteredCount: (current.lifetimeFilteredCount as number) + message.delta!
+      lifetimeFilteredCount: Math.max(0, (current.lifetimeFilteredCount as number) + delta)
     });
     const session = await chrome.storage.session.get({ filteredCount: 0 });
     await chrome.storage.session.set({
-      filteredCount: (session.filteredCount as number) + message.delta!
+      filteredCount: Math.max(0, (session.filteredCount as number) + delta)
     });
   })();
 });
 
-void syncContentScripts();
+void bootstrapContentScripts();

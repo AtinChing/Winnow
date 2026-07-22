@@ -32,20 +32,25 @@ if (!window.__winnowInitialized) {
     if (!actions) return;
     const nodes = [...pending];
     pending.clear();
-    let blocked = 0;
+    let delta = 0;
     for (const node of nodes) {
       const wasBlocked = actions.isBlocked(node);
       actions.reset(node);
       const ctx = adapter.extract(node);
-      if (!ctx.text) continue;
+      if (!ctx.text) {
+        if (wasBlocked) delta--;
+        continue;
+      }
       const result = pipeline.check(ctx, settings);
       if (result.blocked) {
         actions.block(node, result.reason ?? 'filtered');
-        if (!wasBlocked) blocked++;
+        if (!wasBlocked) delta++;
+      } else if (wasBlocked) {
+        delta--;
       }
     }
-    if (blocked) {
-      chrome.runtime.sendMessage({ type: 'filtered', delta: blocked }).catch(() => undefined);
+    if (delta) {
+      chrome.runtime.sendMessage({ type: 'filtered', delta }).catch(() => undefined);
     }
   }
 
