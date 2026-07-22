@@ -66,9 +66,17 @@ describe('duplicate filter', () => {
   });
 
   it('treats near-duplicate phrasing as similar', () => {
+    expect(similar('pog champ', 'pogchamp')).toBe(true);
     expect(similar('pog champ moment', 'pogchamp moment')).toBe(true);
     expect(similar('gg well played team', 'gg well played')).toBe(true);
     expect(similar('nice play', 'totally different chat')).toBe(false);
+  });
+
+  it('does not treat short unrelated chat as similar', () => {
+    expect(similar('yes', 'yes yes')).toBe(false);
+    expect(similar('hi', 'hi there')).toBe(false);
+    expect(similar('lol', 'lmao')).toBe(false);
+    expect(similar('nice play', 'nice try')).toBe(false);
   });
 
   it('does not treat empty normalized text as similar', () => {
@@ -103,6 +111,7 @@ describe('duplicate filter', () => {
     let result = { blocked: false };
     for (let i = 0; i < 6; i++) result = duplicateFilter.check(ctx('!!!'), s, defaultSettings);
     expect(result.blocked).toBe(false);
+    expect(s.messages).toHaveLength(0);
   });
 });
 

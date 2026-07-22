@@ -26,7 +26,8 @@ export function similar(a: string, b: string): boolean {
 
   const aTokens = tokens(a);
   const bTokens = tokens(b);
-  if (aTokens.size === 0 || bTokens.size === 0) return false;
+  // Jaccard needs at least two shared tokens so short chat ("yes" vs "yes yes") does not collide.
+  if (aTokens.size < 2 || bTokens.size < 2) return false;
 
   let intersection = 0;
   for (const token of aTokens) {
@@ -35,9 +36,7 @@ export function similar(a: string, b: string): boolean {
   const union = aTokens.size + bTokens.size - intersection;
   const jaccard = intersection / union;
 
-  // Require enough shared substance so short unrelated chat does not collide.
-  const minShared = Math.min(aTokens.size, bTokens.size) >= 2 ? 2 : 1;
-  return intersection >= minShared && jaccard >= 0.75;
+  return intersection >= 2 && jaccard >= 0.75;
 }
 
 export const duplicateFilter: Filter = {
@@ -47,6 +46,7 @@ export const duplicateFilter: Filter = {
     const t = thresholdsFor(settings);
     const cutoff = state.now - t.duplicateWindowSeconds * 1000;
     const text = normalizeText(ctx.text);
+    if (!text) return { blocked: false };
 
     state.messages = state.messages.filter((entry) => entry.at >= cutoff).slice(-MAX_TRACKED_MESSAGES);
     const count = state.messages.filter((entry) => similar(entry.text, text)).length + 1;
