@@ -31,13 +31,14 @@ if (!window.__winnowInitialized) {
     pending.clear();
     let blocked = 0;
     for (const node of nodes) {
+      const wasBlocked = actions.isBlocked(node);
       actions.reset(node);
       const ctx = adapter.extract(node);
       if (!ctx.text) continue;
       const result = pipeline.check(ctx, settings);
       if (result.blocked) {
         actions.block(node, result.reason ?? 'filtered');
-        blocked++;
+        if (!wasBlocked) blocked++;
       }
     }
     if (blocked) {

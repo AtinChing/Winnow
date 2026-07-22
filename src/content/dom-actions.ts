@@ -106,6 +106,10 @@ export class DomActions {
     this.renderBadge();
   }
 
+  isBlocked(node: Element): boolean {
+    return this.placeholders.has(node);
+  }
+
   getCount(): number {
     return this.count;
   }

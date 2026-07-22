@@ -58,10 +58,13 @@ async function init(): Promise<void> {
     root.append(item);
   }
 
-  const session = await chrome.storage.session.get({ filteredCount: 0 });
+  const [session, sync] = await Promise.all([
+    chrome.storage.session.get({ filteredCount: 0 }),
+    chrome.storage.sync.get({ lifetimeFilteredCount: 0 })
+  ]);
   count.textContent = `${session.filteredCount} filtered this session`;
   if (lifetime) {
-    lifetime.textContent = `${settings.lifetimeFilteredCount} filtered all time`;
+    lifetime.textContent = `${sync.lifetimeFilteredCount} filtered all time`;
   }
 }
 
